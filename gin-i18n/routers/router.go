@@ -6,8 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func authMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		// todo!!!
+		ctx.Next()
+	}
+}
+
 // RegisterRoutes 注册路由
 func RegisterRoutes(r *gin.Engine) {
+
+	rateLimiter := NewRateLimiter(2, 5)
+	r.Use(RateLimitMiddleware(rateLimiter))
 
 	authRoutes := r.Group("/auth")
 	{
@@ -17,8 +27,9 @@ func RegisterRoutes(r *gin.Engine) {
 
 	taskRoutes := r.Group("/tasks")
 	{
-		taskRoutes.POST("/", controllers.CreateTask)    // 创建用户
-		taskRoutes.GET("/:id", controllers.GetTaskByID) // 根据 ID 获取用户
-		taskRoutes.PUT("/:id", controllers.UpdateTask)  // 更新用户
+		taskRoutes.POST("/", authMiddleware(), controllers.CreateTask)
+		taskRoutes.POST("/:id/translate", authMiddleware(), controllers.TranslateTask)
+		taskRoutes.GET("/:id", authMiddleware(), controllers.GetTaskByID)
+		taskRoutes.GET("/:id/download", authMiddleware(), controllers.DownloadTask)
 	}
 }
